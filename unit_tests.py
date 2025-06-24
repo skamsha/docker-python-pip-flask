@@ -24,32 +24,47 @@ class UnitTests(unittest.TestCase):
         self.assertTrue(ll.contains("head"))
         self.assertFalse(ll.contains("tails"))
 
-    def test_reversed_plain_list_basic(self):
+        def test_flatten_reverse_flat_list(self):
         ll = LinkedList()
         ll.add(1)
         ll.add(2)
         ll.add(3)
-        reversed_list = ll.reversed_plain_list()
-        self.assertEqual(reversed_list, [3, 2, 1])
-        self.assertEqual(ll.to_plain_list(), [1, 2, 3])  # Ensure original unchanged
+        self.assertEqual(ll.flatten_reverse(), [3, 2, 1])
 
-    def test_reversed_plain_list_empty(self):
-        ll = LinkedList()
-        self.assertEqual(ll.reversed_plain_list(), [])
+    def test_flatten_reverse_nested_lists(self):
+        inner = LinkedList()
+        inner.add("a")
+        inner.add("b")
+        outer = LinkedList()
+        outer.add(1)
+        outer.add(inner)
+        outer.add(2)
+        self.assertEqual(outer.flatten_reverse(), [2, "b", "a", 1])
 
-    def test_reversed_plain_list_one_element(self):
-        ll = LinkedList()
-        ll.add("x")
-        self.assertEqual(ll.reversed_plain_list(), ["x"])
-        self.assertEqual(ll.to_plain_list(), ["x"])
+    def test_flatten_reverse_deeply_nested(self):
+        ll3 = LinkedList()
+        ll3.add("z")
+        ll2 = LinkedList()
+        ll2.add("y")
+        ll2.add(ll3)
+        ll1 = LinkedList()
+        ll1.add("x")
+        ll1.add(ll2)
 
-    def test_reversed_plain_list_with_duplicates(self):
+        self.assertEqual(ll1.flatten_reverse(), ["z", "y", "x"])
+
+    def test_flatten_reverse_empty(self):
         ll = LinkedList()
-        ll.add("x")
-        ll.add("y")
-        ll.add("x")
-        ll.add("z")
-        self.assertEqual(ll.reversed_plain_list(), ["z", "x", "y", "x"])
-        self.assertEqual(ll.to_plain_list(), ["x", "y", "x", "z"])
+        self.assertEqual(ll.flatten_reverse(), [])
+
+    def test_flatten_reverse_all_nested(self):
+        a = LinkedList()
+        a.add(1)
+        b = LinkedList()
+        b.add(a)
+        c = LinkedList()
+        c.add(b)
+        self.assertEqual(c.flatten_reverse(), [1])
+
 if __name__ == "__main__":
     unittest.main()
