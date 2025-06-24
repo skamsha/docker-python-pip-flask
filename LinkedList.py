@@ -108,11 +108,11 @@ class LinkedList:
         return self.to_plain_list(current.next, plain_list)
 
     def flatten_reverse(self, max_depth=None):
-    """
-    Returns a generator that yields every element from the list in reverse order,
-    flattening nested containers up to max_depth levels.
-    Strings and bytes are not split apart.
-    """
+        """
+        Returns a generator that yields every element from the list in reverse order,
+        flattening nested containers up to max_depth levels.
+        Strings and bytes are not split apart.
+        """
         def _flatten_item(item, current_depth=0):
             """Helper function to flatten a single item"""
             # Don't flatten strings or bytes
