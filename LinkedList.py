@@ -113,7 +113,7 @@ class LinkedList:
         flattening nested containers up to max_depth levels.
         Strings and bytes are not split apart.
         """
-            def _flatten_item(item, current_depth=0):
+        def _flatten_item(item, current_depth=0):
                 # Do not flatten strings or bytes
                 if isinstance(item, (str, bytes)):
                     yield item
