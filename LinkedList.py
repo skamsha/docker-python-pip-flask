@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 
 class Node:
-    def __init__(self, value):
+    def __init__(self, value=None):
         self.value = value
         self.next = None
 
@@ -11,39 +11,39 @@ class LinkedList:
         self.tail = None
 
     def add(self, value):
-        """Add a new node with the given value to the end of the list."""
-        node = Node(value)
-        if self.head is None:
-            self.head = self.tail = node
+        new_node = Node(value)
+        if not self.head:
+            self.head = new_node
+            self.tail = new_node
         else:
-            self.tail.next = node
-            self.tail = node
+            self.tail.next = new_node
+            self.tail = new_node
 
-    def insert(self, value, position):
-        """Insert a new node with the given value at the specified position."""
-        if position < 0:
-            raise IndexError("Position must be non-negative")
-        node = Node(value)
-        if position == 0:
-            node.next = self.head
-            self.head = node
-            if self.tail is None:
-                self.tail = node
+    def insert(self, value, index):
+        if index < 0:
+            raise IndexError("Index must be non-negative")
+        new_node = Node(value)
+        if index == 0:
+            new_node.next = self.head
+            self.head = new_node
+            if not self.tail:
+                self.tail = new_node
             return
         current = self.head
-        idx = 0
-        while current is not None and idx < position - 1:
+        prev = None
+        curr_index = 0
+        while current and curr_index < index:
+            prev = current
             current = current.next
-            idx += 1
-        if current is None:
-            raise IndexError("Position out of range")
-        node.next = current.next
-        current.next = node
-        if node.next is None:
-            self.tail = node
+            curr_index += 1
+        if curr_index != index:
+            raise IndexError("Index out of bounds")
+        prev.next = new_node
+        new_node.next = current
+        if new_node.next is None:
+            self.tail = new_node
 
     def contains(self, value):
-        """Check if the list contains the given value."""
         current = self.head
         while current:
             if current.value == value:
@@ -51,73 +51,79 @@ class LinkedList:
             current = current.next
         return False
 
-    def to_plain_list(self):
-        """Convert the LinkedList to a plain Python list."""
-        result = []
-        current = self.head
-        while current:
-            result.append(current.value)
-            current = current.next
-        return result
-
     def reverse(self):
-        """Reverse the linked list in place."""
         prev = None
         current = self.head
+        self.tail = self.head  # after reverse, old head becomes tail
         while current:
-            nxt = current.next
+            next_node = current.next
             current.next = prev
             prev = current
-            current = nxt
-        self.head, self.tail = self.tail, self.head
+            current = next_node
+        self.head = prev
+
+    def to_plain_list(self):
+        return list(self)
+
+    def __iter__(self):
+        current = self.head
+        while current:
+            yield current.value
+            current = current.next
 
     def flatten_reverse(self, max_depth=None):
         """
-        Lazily yield elements from the linked list and nested iterables in reverse order,
-        flattening nested structures up to max_depth. Does not mutate original list.
+        Generator yielding elements in reverse order, flattening nested structures
+        up to max_depth. Strings are not iterated over. Does not mutate original data.
         """
-        def _flatten(item, current_depth=0):
-            # Handle max_depth limit
-            if max_depth is not None and current_depth >= max_depth:
-                if isinstance(item, LinkedList):
-                    # At max depth: yield each element as is, no further flattening
-                    for elem in item.to_plain_list():
-                        yield elem
-                else:
-                    yield item
+        def _flatten_reverse(value, depth):
+            # Stop flattening if max_depth is reached
+            if max_depth is not None and depth > max_depth:
+                yield value
+                return
+            
+            # If value is None, just yield it
+            if value is None:
+                yield None
                 return
 
-            # If item is a LinkedList, flatten its plain list recursively
-            if isinstance(item, LinkedList):
-                yield from _flatten(item.to_plain_list(), current_depth + 1)
+            # Avoid flattening strings
+            if isinstance(value, str):
+                yield value
                 return
 
-            # Strings/bytes are treated as atomic (not flattened)
-            if isinstance(item, (str, bytes)):
-                yield item
+            # If value is LinkedList, iterate over its nodes in reverse
+            if isinstance(value, LinkedList):
+                # iterate nodes in reverse order
+                # collect values first to reverse them
+                vals = []
+                current = value.head
+                while current:
+                    vals.append(current.value)
+                    current = current.next
+                for v in reversed(vals):
+                    # recurse with increased depth
+                    yield from _flatten_reverse(v, depth + 1)
                 return
 
-            # Try to iterate over item if it is iterable (list, tuple, etc.)
-            if isinstance(item, Iterable):
-                # For iterables other than string/bytes, flatten each element reversed
-                # but skip flattening for empty iterables or None
-                try:
-                    iter_list = list(item)
-                except TypeError:
-                    yield item
-                    return
-
-                if len(iter_list) == 0:
-                    # Empty iterable yields nothing
-                    return
-
-                for elem in reversed(iter_list):
-                    yield from _flatten(elem, current_depth + 1)
+            # If value is some other iterable (list, tuple, set, etc.)
+            if isinstance(value, Iterable):
+                # Convert to list to reverse order
+                vals = list(value)
+                for v in reversed(vals):
+                    yield from _flatten_reverse(v, depth + 1)
                 return
 
-            # If not iterable, yield item directly
-            yield item
+            # Base case: yield the value itself
+            yield value
 
-        # Start flattening from the linked list itself, reversed order
-        return _flatten(self.to_plain_list())
+        # To iterate the linked list in reverse order, collect nodes first
+        vals = []
+        current = self.head
+        while current:
+            vals.append(current.value)
+            current = current.next
 
+        # Yield flattened values in reverse order
+        for val in reversed(vals):
+            yield from _flatten_reverse(val, 1)
