@@ -110,11 +110,10 @@ class LinkedList:
     def flatten_reverse(self, max_depth=float("inf")):
         """
         Returns a lazy generator that yields all elements of the list in reverse,
-        flattening nested containers (including LinkedLists) up to max_depth.
-        Strings and bytes are not flattened. Original data remains unmodified.
+        flattening nested containers (including LinkedLists) up to max_depth
         """
         def _flatten(item, depth):
-            if isinstance(item, (str, bytes)) or depth >= max_depth:
+            if isinstance(item, (str, bytes)) or depth > max_depth:
                 yield item
             elif isinstance(item, LinkedList):
                 yield from _flatten_list(item._head, depth + 1)
