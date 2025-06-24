@@ -8,42 +8,41 @@ class Node:
 class LinkedList:
     def __init__(self):
         self.head = None
-        self.tail = None
+
+    def __iter__(self):
+        current = self.head
+        while current:
+            yield current.value
+            current = current.next
 
     def add(self, value):
+        """Add value to the end of the list."""
         new_node = Node(value)
         if not self.head:
             self.head = new_node
-            self.tail = new_node
-        else:
-            self.tail.next = new_node
-            self.tail = new_node
-
-    def insert(self, value, index):
-        if index < 0:
-            raise IndexError("Index must be non-negative")
-        new_node = Node(value)
-        if index == 0:
-            new_node.next = self.head
-            self.head = new_node
-            if not self.tail:
-                self.tail = new_node
             return
         current = self.head
-        prev = None
-        curr_index = 0
-        while current and curr_index < index:
-            prev = current
+        while current.next:
             current = current.next
-            curr_index += 1
-        if curr_index != index:
-            raise IndexError("Index out of bounds")
-        prev.next = new_node
-        new_node.next = current
-        if new_node.next is None:
-            self.tail = new_node
+        current.next = new_node
+
+    def insert(self, value, index):
+        """Insert value at a given index."""
+        new_node = Node(value)
+        if index <= 0 or not self.head:
+            new_node.next = self.head
+            self.head = new_node
+            return
+        current = self.head
+        pos = 0
+        while current.next and pos < index - 1:
+            current = current.next
+            pos += 1
+        new_node.next = current.next
+        current.next = new_node
 
     def contains(self, value):
+        """Check if value exists in list."""
         current = self.head
         while current:
             if current.value == value:
@@ -52,28 +51,55 @@ class LinkedList:
         return False
 
     def reverse(self):
+        """Reverse the list in place."""
         prev = None
         current = self.head
-        self.tail = self.head  # after reverse, old head becomes tail
         while current:
-            next_node = current.next
+            nxt = current.next
             current.next = prev
             prev = current
-            current = next_node
+            current = nxt
         self.head = prev
 
     def to_plain_list(self):
+        """Return list of values."""
         return list(self)
 
-    def __iter__(self):
-        current = self.head
-        while current:
-            yield current.value
-            current = current.next
+    def flatten_reverse(self, max_depth=None):
+        """Lazy generator that yields elements in reverse order, flattening nested iterables up to max_depth."""
+        def _flatten_reverse(value, depth):
+            if max_depth is not None and depth == max_depth:
+                # flatten exactly one more level without recursion
+                if isinstance(value, LinkedList):
+                    vals = []
+                    current = value.head
+                    while current:
+                        vals.append(current.value)
+                        current = current.next
+                    for v in reversed(vals):
+                        yield v
+                    return
+                elif isinstance(value, Iterable) and not isinstance(value, str):
+                    vals = list(value)
+                    for v in reversed(vals):
+                        yield v
+                    return
+                else:
+                    yield value
+                    return
 
-    def flatten_reverse(value, depth):
-        if max_depth is not None and depth == max_depth:
-            # flatten one more level without recursion
+            if max_depth is not None and depth > max_depth:
+                yield value
+                return
+
+            if value is None:
+                yield None
+                return
+
+            if isinstance(value, str):
+                yield value
+                return
+
             if isinstance(value, LinkedList):
                 vals = []
                 current = value.head
@@ -81,43 +107,15 @@ class LinkedList:
                     vals.append(current.value)
                     current = current.next
                 for v in reversed(vals):
-                    yield v
+                    yield from _flatten_reverse(v, depth + 1)
                 return
-            elif isinstance(value, Iterable) and not isinstance(value, str):
+
+            if isinstance(value, Iterable):
                 vals = list(value)
                 for v in reversed(vals):
-                    yield v
+                    yield from _flatten_reverse(v, depth + 1)
                 return
-            else:
-                yield value
-                return
-    
-        if max_depth is not None and depth > max_depth:
+
             yield value
-            return
-    
-        if value is None:
-            yield None
-            return
-    
-        if isinstance(value, str):
-            yield value
-            return
-    
-        if isinstance(value, LinkedList):
-            vals = []
-            current = value.head
-            while current:
-                vals.append(current.value)
-                current = current.next
-            for v in reversed(vals):
-                yield from flatten_reverse(v, depth + 1)
-            return
-    
-        if isinstance(value, Iterable):
-            vals = list(value)
-            for v in reversed(vals):
-                yield from flatten_reverse(v, depth + 1)
-            return
-    
-        yield value
+
+        return _flatten_reverse(self, 0)
