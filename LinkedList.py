@@ -96,7 +96,7 @@ class LinkedList:
         current.next = previous
         self.reverse(next_node, current)
 
-    def to_plain_list(self, current = None, plain_list = None):
+        def to_plain_list(self, current = None, plain_list = None):
         """
         Takes the elements of the LinkedList and returns them in the form of
         a regular Python list
@@ -113,36 +113,47 @@ class LinkedList:
         else:
             return self.to_plain_list(current.next, plain_list)
     
-    # New method added below for flatten_reverse functionality
-    def _flatten(self, item, depth, max_depth):
+   def flatten_reverse(self, max_depth=None):
         """
-        Helper generator to recursively flatten an item if it's an iterable,
-        respecting max_depth. Yields elements lazily.
+        Returns a generator that yields every element from the list in reverse order,
+        flattening nested containers up to max_depth levels.
+        Strings and bytes are not split apart.
         """
-        # If max depth reached or item is not flattenable, yield as-is
-        if depth > max_depth or not hasattr(item, '__iter__') or isinstance(item, (str, bytes)):
-            yield item
-            return
-        # Recursively flatten each sub-item
-        for subitem in item:
-            yield from self._flatten(subitem, depth + 1, max_depth)
-    
-    def _reverse_flatten(self, node, max_depth):
-        """
-        Helper generator to traverse the linked list in reverse and yield
-        flattened elements from each node's data.
-        """
-        if node is None:
-            return
-        # Recurse to process next node first (for reverse order)
-        yield from self._reverse_flatten(node.next, max_depth)
-        # Then yield flattened data from current node
-        yield from self._flatten(node.data, 0, max_depth)
-    
-    def flatten_reverse(self, max_depth=float('inf')):
-        """
-        Returns a generator that yields every element from the linked list in reverse order,
-        flattening nested containers up to max_depth. Strings and bytes are not split.
-        The generator is lazy and does not modify the original data.
-        """
-        yield from self._reverse_flatten(self._head, max_depth)
+        def _flatten_item(item, current_depth=0):
+            """Helper function to flatten a single item"""
+            # Don't flatten strings or bytes
+            if isinstance(item, (str, bytes)):
+                yield item
+                return
+            
+            # Check depth limit
+            if max_depth is not None and current_depth >= max_depth:
+                yield item
+                return
+            
+            # Try to iterate over the item (check if it's a container)
+            try:
+                # Convert to list to reverse it
+                container_items = list(item)
+                # Yield items in reverse order
+                for sub_item in reversed(container_items):
+                    yield from _flatten_item(sub_item, current_depth + 1)
+            except TypeError:
+                # Item is not iterable, yield as-is
+                yield item
+        
+        def _collect_all_items():
+            """Collect all items from the linked list"""
+            items = []
+            current = self._head
+            while current is not None:
+                items.append(current.data)
+                current = current.next
+            return items
+        
+        # Get all items from the linked list
+        all_items = _collect_all_items()
+        
+        # Process items in reverse order and flatten them
+        for item in reversed(all_items):
+            yield from _flatten_item(item)
