@@ -109,40 +109,42 @@ class LinkedList:
 
     def flatten_reverse(self, max_depth=None):
         def _flatten(item, current_depth=0):
-            # If max_depth is set and we've reached it, yield item as-is (no further flatten)
+            # If we reached max_depth, yield item as is, no deeper flatten
             if max_depth is not None and current_depth >= max_depth:
                 yield item
                 return
-    
-            # If it's a LinkedList, convert to list and recurse with incremented depth
+            
+            # Treat LinkedList specially: convert to list and recurse one depth level deeper
             if isinstance(item, LinkedList):
-                current_depth += 1
-                item = item.to_plain_list()
-    
-            # If it's a string or bytes, yield as-is (don't iterate)
+                # Increase depth for LinkedList
+                yield from _flatten(item.to_plain_list(), current_depth + 1)
+                return
+            
+            # If it's a string or bytes, yield as is (don't iterate)
             if isinstance(item, (str, bytes)):
                 yield item
                 return
-    
-            # Try to iterate in reverse order
+            
+            # Check if it's iterable (like list, tuple, etc.)
             try:
-                iterator = reversed(list(item))
+                # convert to list to allow reversed()
+                iter_list = list(item)
             except TypeError:
-                # Not iterable, yield as-is
+                # Not iterable, yield as is
                 yield item
                 return
+            
+            # If iterable, increase depth and flatten elements in reverse
+            for elem in reversed(iter_list):
+                yield from _flatten(elem, current_depth + 1)
     
-            # For each element, recurse flattening
-            for elem in iterator:
-                yield from _flatten(elem, current_depth)
-    
-        # Gather all node data in normal order, then yield from reverse
+        # Gather all node data in normal order, then yield flatten_reverse from last to first
         current = self._head
-        data_list = []
+        data = []
         while current:
-            data_list.append(current.data)
+            data.append(current.data)
             current = current.next
-    
-        for element in reversed(data_list):
-            yield from _flatten(element)
-
+        
+        # Yield flattened data in reverse order
+        for elem in reversed(data):
+            yield from _flatten(elem)
