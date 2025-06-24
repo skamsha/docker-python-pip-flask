@@ -120,7 +120,7 @@ class LinkedList:
                 return
 
             # Do not flatten past max depth
-            if max_depth is not None and current_depth >= max_depth:
+            if max_depth is not None and current_depth > max_depth:
                 yield item
                 return
 
