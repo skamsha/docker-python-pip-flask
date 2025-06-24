@@ -127,7 +127,7 @@ class LinkedList:
             # Otherwise, collect the non-list data
             flat_list.append(current.data)
         # Proceed to the next node
-        self._flatten(current.next, flat_list)
+        #self._flatten(current.next, flat_list)
     
     # New method as requested: Returns a flattened plain list in reverse order
     def flatten_reverse(self):
