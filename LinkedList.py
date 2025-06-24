@@ -1,147 +1,96 @@
 class Node:
-    """
-    Represents a node within a LinkedList
-    """
-    def __init__(self, data):
-        """Inits a Node"""
-        self.data = data
+    def __init__(self, value=None):
+        self.value = value
         self.next = None
 
 class LinkedList:
-    """
-    Implementation of a LinkedList ADT with some methods defined recursively
-    """
     def __init__(self):
-        """Inits a LinkedList"""
-        self._head = None
+        self.head = None
+        self.tail = None
 
-    def get_head(self):
-        """Returns the first Node object in the list"""
-        return self._head
-
-    def add(self, val, current=None):
-        """
-        Adds a node containing val to the end of the linked list
-        """
-        if self._head is None:
-            self._head = Node(val)
-        elif current is None:
-            self.add(val, self._head)
-        elif current.next is None:
-            current.next = Node(val)
+    def add(self, value):
+        new_node = Node(value)
+        if not self.head:
+            self.head = new_node
+            self.tail = new_node
         else:
-            self.add(val, current.next)
+            self.tail.next = new_node
+            self.tail = new_node
 
-    def remove(self, val, current=None, previous=None):
-        """
-        Removes the first node containing val from the linked list
-        """
-        if self._head is None:
+    # Your original insert method (unchanged)
+    def insert(self, value, position):
+        node = Node(value)
+        if position == 0:
+            node.next = self.head
+            self.head = node
+            if self.tail is None:
+                self.tail = node
             return
-        if current is None:
-            current = self._head
-        if current.data == val:
-            if previous is None:
-                self._head = current.next
-            else:
-                previous.next = current.next
-            return
-        if current.next is not None:
-            self.remove(val, current.next, current)
+        current = self.head
+        idx = 0
+        while current.next and idx < position - 1:
+            current = current.next
+            idx += 1
+        node.next = current.next
+        current.next = node
+        if node.next is None:
+            self.tail = node
 
-    def contains(self, val, current=None, counter=0):
-        """Returns True if the LinkedList contains a value, False otherwise"""
-        if counter == 0:
-            current = self._head
-        if current is None:
-            return False
-        if current.data == val:
-            return True
-        return self.contains(val, current.next, counter + 1)
+    def contains(self, value):
+        current = self.head
+        while current:
+            if current.value == value:
+                return True
+            current = current.next
+        return False
 
-    def insert(self, val, pos, current=None, counter=0):
-        """Inserts a given value into a given position"""
-        if counter == 0:
-            current = self._head
-            if pos == 0:
-                new_head = Node(val)
-                new_head.next = self._head
-                self._head = new_head
-                return
-        if current is None:
-            return
-        if counter == pos - 1:
-            new_node = Node(val)
-            new_node.next = current.next
-            current.next = new_node
-            return
-        if current.next is None:
-            current.next = Node(val)
-            return
-        return self.insert(val, pos, current.next, counter + 1)
+    def to_plain_list(self):
+        lst = []
+        current = self.head
+        while current:
+            lst.append(current.value)
+            current = current.next
+        return lst
 
-    def reverse(self, current=None, previous=None):
-        """Reverses the LinkedList by reversing the pointers"""
-        if current is None:
-            current = self._head
-        if current is None:
-            return
-        if current.next is None:
-            self._head = current
-            current.next = previous
-            return
-        next_node = current.next
-        current.next = previous
-        self.reverse(next_node, current)
-
-    def to_plain_list(self, current=None, plain_list=None):
-        """Returns a standard Python list of the linked list elements"""
-        if plain_list is None:
-            plain_list = []
-        if current is None:
-            current = self._head
-        if current is None:
-            return plain_list
-        plain_list.append(current.data)
-        if current.next is None:
-            return plain_list
-        return self.to_plain_list(current.next, plain_list)
+    def reverse(self):
+        prev = None
+        current = self.head
+        self.tail = self.head
+        while current:
+            next_node = current.next
+            current.next = prev
+            prev = current
+            current = next_node
+        self.head = prev
 
     def flatten_reverse(self, max_depth=None):
-        def _flatten(item, current_depth=0):
-            # At max depth: yield contents without further flattening
-            if max_depth is not None and current_depth >= max_depth:
-                if isinstance(item, LinkedList):
-                    # Yield each element in plain list, avoid double wrapping
-                    for elem in item.to_plain_list():
-                        yield elem
-                else:
-                    yield item
+        def _flatten(value, depth):
+            if max_depth is not None and depth >= max_depth:
+                yield value
                 return
-            
-            if isinstance(item, LinkedList):
-                yield from _flatten(item.to_plain_list(), current_depth + 1)
-                return
-            
-            if isinstance(item, (str, bytes)):
-                yield item
-                return
-            
-            try:
-                iter_list = list(item)
-            except TypeError:
-                yield item
-                return
-            
-            for elem in reversed(iter_list):
-                yield from _flatten(elem, current_depth + 1)
-    
-        # Collect data from linked list nodes
-        current = self._head
-        data = []
+            if value is None:
+                yield None
+            elif isinstance(value, LinkedList):
+                # Yield its elements in reverse flattened order
+                current_nodes = []
+                current = value.head
+                while current:
+                    current_nodes.append(current.value)
+                    current = current.next
+                for v in reversed(current_nodes):
+                    yield from _flatten(v, depth + 1)
+            elif isinstance(value, (list, tuple)) and not isinstance(value, (str, bytes)):
+                for v in reversed(value):
+                    yield from _flatten(v, depth + 1)
+            else:
+                yield value
+
+        # Collect all values of this linked list into a list to reverse order (to avoid mutation)
+        nodes = []
+        current = self.head
         while current:
-            data.append(current.data)
+            nodes.append(current.value)
             current = current.next
-    
-        for elem in reversed(data):
-            yield from _flatten(elem)
+
+        for val in reversed(nodes):
+            yield from _flatten(val, 0)
