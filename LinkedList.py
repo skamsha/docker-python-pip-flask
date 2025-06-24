@@ -83,25 +83,7 @@ class LinkedList:
                 yield value
                 return
 
-            # If we are at max_depth
-            if max_depth is not None and depth == max_depth:
-                # Special case: flatten LinkedList even at max_depth
-                if isinstance(value, LinkedList):
-                    vals = []
-                    current = value.head
-                    while current:
-                        vals.append(current.value)
-                        current = current.next
-                    for v in reversed(vals):
-                        yield from _flatten_reverse(v, depth + 1)
-                # Otherwise yield iterable as-is (no flatten)
-                elif isinstance(value, Iterable):
-                    yield value
-                else:
-                    yield value
-                return
-
-            # Normal flattening for LinkedList
+            # If value is LinkedList, flatten it recursively
             if isinstance(value, LinkedList):
                 vals = []
                 current = value.head
@@ -112,7 +94,7 @@ class LinkedList:
                     yield from _flatten_reverse(v, depth + 1)
                 return
 
-            # Normal flattening for other iterables (list, tuple, etc.)
+            # If value is other iterable (list, tuple, etc.), flatten recursively
             if isinstance(value, Iterable):
                 vals = list(value)
                 for v in reversed(vals):
