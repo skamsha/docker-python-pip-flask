@@ -113,40 +113,40 @@ class LinkedList:
         flattening nested containers up to max_depth levels.
         Strings and bytes are not split apart.
         """
-        def _flatten_item(item, current_depth=0):
-            # Do not flatten strings or bytes
-            if isinstance(item, (str, bytes)):
-                yield item
-                return
-
-            # Do not flatten past max depth
-            if max_depth is not None and current_depth >= max_depth:
-                yield item
-                return
-
-            # Handle nested LinkedLists
-            if isinstance(item, LinkedList):
-                # Extract elements from linked list
-                container_items = item.to_plain_list()
-            else:
-                try:
-                    container_items = list(item)
-                except TypeError:
-                    # Not iterable
+            def _flatten_item(item, current_depth=0):
+                # Do not flatten strings or bytes
+                if isinstance(item, (str, bytes)):
                     yield item
                     return
-
-            # Recurse through the items in reverse
-            for sub_item in reversed(container_items):
-                yield from _flatten_item(sub_item, current_depth + 1)
-
-        # Collect linked list items
-        items = []
-        current = self._head
-        while current:
-            items.append(current.data)
-            current = current.next
-
-        # Flatten in reverse
-        for item in reversed(items):
-            yield from _flatten_item(item)
+    
+                # Do not flatten past max depth
+                if max_depth is not None and current_depth >= max_depth:
+                    yield item
+                    return
+    
+                # Handle nested LinkedLists
+                if isinstance(item, LinkedList):
+                    # Extract elements from linked list
+                    container_items = item.to_plain_list()
+                else:
+                    try:
+                        container_items = list(item)
+                    except TypeError:
+                        # Not iterable
+                        yield item
+                        return
+    
+                # Recurse through the items in reverse
+                for sub_item in reversed(container_items):
+                    yield from _flatten_item(sub_item, current_depth + 1)
+    
+            # Collect linked list items
+            items = []
+            current = self._head
+            while current:
+                items.append(current.data)
+                current = current.next
+    
+            # Flatten in reverse
+            for item in reversed(items):
+                yield from _flatten_item(item)
