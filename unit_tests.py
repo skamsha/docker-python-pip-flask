@@ -24,7 +24,7 @@ class UnitTests(unittest.TestCase):
         self.assertTrue(ll.contains("head"))
         self.assertFalse(ll.contains("tails"))
 
-        def test_flatten_reverse_flat_list(self):
+    def test_flatten_reverse_flat_list(self):
         ll = LinkedList()
         ll.add(1)
         ll.add(2)
