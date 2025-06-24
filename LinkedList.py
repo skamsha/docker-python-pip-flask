@@ -107,28 +107,46 @@ class LinkedList:
             return plain_list
         return self.to_plain_list(current.next, plain_list)
 
-    def flatten_reverse(self, max_depth=float("inf")):
+        def flatten_reverse(self, max_depth=None):
         """
-        Returns a lazy generator that yields all elements of the list in reverse,
-        flattening nested containers (including LinkedLists) up to max_depth
+        Returns a generator that yields every element from the list in reverse order,
+        flattening nested containers up to max_depth levels.
+        Strings and bytes are not split apart.
         """
-        def _flatten(item, depth):
-            if isinstance(item, (str, bytes)) or depth >= max_depth:
+        def _flatten_item(item, current_depth=0):
+            # Do not flatten strings or bytes
+            if isinstance(item, (str, bytes)):
                 yield item
-            elif isinstance(item, LinkedList):
-                yield from _flatten_list(item._head, depth + 1)
+                return
+
+            # Do not flatten past max depth
+            if max_depth is not None and current_depth >= max_depth:
+                yield item
+                return
+
+            # Handle nested LinkedLists
+            if isinstance(item, LinkedList):
+                # Extract elements from linked list
+                container_items = item.to_plain_list()
             else:
                 try:
-                    iterable = reversed(list(item))
-                    for sub in iterable:
-                        yield from _flatten(sub, depth + 1)
+                    container_items = list(item)
                 except TypeError:
+                    # Not iterable
                     yield item
+                    return
 
-        def _flatten_list(node, depth):
-            if node is None:
-                return
-            yield from _flatten_list(node.next, depth)
-            yield from _flatten(node.data, depth)
+            # Recurse through the items in reverse
+            for sub_item in reversed(container_items):
+                yield from _flatten_item(sub_item, current_depth + 1)
 
-        yield from _flatten_list(self._head, 0)
+        # Collect linked list items
+        items = []
+        current = self._head
+        while current:
+            items.append(current.data)
+            current = current.next
+
+        # Flatten in reverse
+        for item in reversed(items):
+            yield from _flatten_item(item)
