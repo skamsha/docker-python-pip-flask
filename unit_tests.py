@@ -31,7 +31,7 @@ class UnitTests(unittest.TestCase):
         ll.add(3)
         self.assertEqual(ll.flatten_reverse(), [3, 2, 1])
 
-        def test_flatten_reverse_with_non_linkedlist_data(self):
+    def test_flatten_reverse_with_non_linkedlist_data(self):
         ll = LinkedList()
         ll.add([1, 2])  # Python list, not LinkedList
         ll.add(3)
