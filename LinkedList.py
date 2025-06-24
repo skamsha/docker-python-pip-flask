@@ -71,7 +71,7 @@ class LinkedList:
             yield current.value
             current = current.next
 
-    def _flatten_reverse(value, depth):
+    def flatten_reverse(value, depth):
         if max_depth is not None and depth == max_depth:
             # flatten one more level without recursion
             if isinstance(value, LinkedList):
@@ -111,13 +111,13 @@ class LinkedList:
                 vals.append(current.value)
                 current = current.next
             for v in reversed(vals):
-                yield from _flatten_reverse(v, depth + 1)
+                yield from flatten_reverse(v, depth + 1)
             return
     
         if isinstance(value, Iterable):
             vals = list(value)
             for v in reversed(vals):
-                yield from _flatten_reverse(v, depth + 1)
+                yield from flatten_reverse(v, depth + 1)
             return
     
         yield value
