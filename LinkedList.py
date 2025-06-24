@@ -71,59 +71,53 @@ class LinkedList:
             yield current.value
             current = current.next
 
-    def flatten_reverse(self, max_depth=None):
-        """
-        Generator yielding elements in reverse order, flattening nested structures
-        up to max_depth. Strings are not iterated over. Does not mutate original data.
-        """
-        def _flatten_reverse(value, depth):
-            # Stop flattening if max_depth is reached
-            if max_depth is not None and depth > max_depth:
-                yield value
-                return
-            
-            # If value is None, just yield it
-            if value is None:
-                yield None
-                return
-
-            # Avoid flattening strings
-            if isinstance(value, str):
-                yield value
-                return
-
-            # If value is LinkedList, iterate over its nodes in reverse
+    def _flatten_reverse(value, depth):
+        if max_depth is not None and depth == max_depth:
+            # flatten one more level without recursion
             if isinstance(value, LinkedList):
-                # iterate nodes in reverse order
-                # collect values first to reverse them
                 vals = []
                 current = value.head
                 while current:
                     vals.append(current.value)
                     current = current.next
                 for v in reversed(vals):
-                    # recurse with increased depth
-                    yield from _flatten_reverse(v, depth + 1)
+                    yield v
                 return
-
-            # If value is some other iterable (list, tuple, set, etc.)
-            if isinstance(value, Iterable):
-                # Convert to list to reverse order
+            elif isinstance(value, Iterable) and not isinstance(value, str):
                 vals = list(value)
                 for v in reversed(vals):
-                    yield from _flatten_reverse(v, depth + 1)
+                    yield v
                 return
-
-            # Base case: yield the value itself
+            else:
+                yield value
+                return
+    
+        if max_depth is not None and depth > max_depth:
             yield value
-
-        # To iterate the linked list in reverse order, collect nodes first
-        vals = []
-        current = self.head
-        while current:
-            vals.append(current.value)
-            current = current.next
-
-        # Yield flattened values in reverse order
-        for val in reversed(vals):
-            yield from _flatten_reverse(val, 1)
+            return
+    
+        if value is None:
+            yield None
+            return
+    
+        if isinstance(value, str):
+            yield value
+            return
+    
+        if isinstance(value, LinkedList):
+            vals = []
+            current = value.head
+            while current:
+                vals.append(current.value)
+                current = current.next
+            for v in reversed(vals):
+                yield from _flatten_reverse(v, depth + 1)
+            return
+    
+        if isinstance(value, Iterable):
+            vals = list(value)
+            for v in reversed(vals):
+                yield from _flatten_reverse(v, depth + 1)
+            return
+    
+        yield value
