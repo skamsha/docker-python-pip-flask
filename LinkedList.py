@@ -112,3 +112,29 @@ class LinkedList:
             return plain_list
         else:
             return self.to_plain_list(current.next, plain_list)
+    
+    # New helper method to recursively flatten the list (handles nesting)
+    def _flatten(self, current, flat_list):
+        """
+        Private helper to recursively flatten the linked list, collecting non-LinkedList data.
+        """
+        if current is None:
+            return
+        # If the data is a nested LinkedList, recurse into it
+        if isinstance(current.data, LinkedList):
+            self._flatten(current.data.get_head(), flat_list)
+        else:
+            # Otherwise, collect the non-list data
+            flat_list.append(current.data)
+        # Proceed to the next node
+        self._flatten(current.next, flat_list)
+    
+    # New method as requested: Returns a flattened plain list in reverse order
+    def flatten_reverse(self):
+        """
+        Returns a plain Python list of all non-LinkedList elements in the (potentially nested)
+        linked list, in reverse order of their flattened appearance. Does not modify the original list.
+        """
+        flat_list = []
+        self._flatten(self._head, flat_list)
+        return flat_list[::-1]  # Reverse the flattened list for the final result
