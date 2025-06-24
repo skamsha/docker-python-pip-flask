@@ -114,17 +114,20 @@ class LinkedList:
         Strings and bytes are not split apart.
         """
         def _flatten_item(item, current_depth=0):
-            """Helper function to flatten a single item"""
             # Don't flatten strings or bytes
             if isinstance(item, (str, bytes)):
                 yield item
                 return
     
+            # Expand LinkedList manually
+            if isinstance(item, LinkedList):
+                item = item.to_plain_list()
+    
             # Try to iterate over the item
             try:
                 container_items = list(item)
             except TypeError:
-                # Not iterable, yield directly
+                # Not iterable — yield as-is
                 yield item
                 return
     
@@ -133,17 +136,18 @@ class LinkedList:
                 yield item
                 return
     
-            # Recursively flatten contents
+            # Flatten each sub-item in reverse order
             for sub_item in reversed(container_items):
                 yield from _flatten_item(sub_item, current_depth + 1)
     
         def _collect_all_items():
             items = []
             current = self._head
-            while current is not None:
+            while current:
                 items.append(current.data)
                 current = current.next
             return items
     
         for item in reversed(_collect_all_items()):
             yield from _flatten_item(item)
+    
