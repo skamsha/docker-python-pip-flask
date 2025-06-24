@@ -73,19 +73,35 @@ class LinkedList:
 
     def flatten_reverse(self, max_depth=None):
         def _flatten_reverse(value, depth):
+            # Stop flattening beyond max_depth
             if max_depth is not None and depth > max_depth:
-                # Stop flattening deeper, yield value as-is
                 yield value
                 return
 
-            if value is None:
-                yield None
-                return
-
-            if isinstance(value, str):
+            # Treat None and strings as atomic
+            if value is None or isinstance(value, str):
                 yield value
                 return
 
+            # If we are at max_depth
+            if max_depth is not None and depth == max_depth:
+                # Special case: flatten LinkedList even at max_depth
+                if isinstance(value, LinkedList):
+                    vals = []
+                    current = value.head
+                    while current:
+                        vals.append(current.value)
+                        current = current.next
+                    for v in reversed(vals):
+                        yield from _flatten_reverse(v, depth + 1)
+                # Otherwise yield iterable as-is (no flatten)
+                elif isinstance(value, Iterable):
+                    yield value
+                else:
+                    yield value
+                return
+
+            # Normal flattening for LinkedList
             if isinstance(value, LinkedList):
                 vals = []
                 current = value.head
@@ -96,12 +112,14 @@ class LinkedList:
                     yield from _flatten_reverse(v, depth + 1)
                 return
 
+            # Normal flattening for other iterables (list, tuple, etc.)
             if isinstance(value, Iterable):
                 vals = list(value)
                 for v in reversed(vals):
                     yield from _flatten_reverse(v, depth + 1)
                 return
 
+            # Base case: yield atomic value
             yield value
 
         return _flatten_reverse(self, 0)
