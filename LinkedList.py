@@ -107,7 +107,7 @@ class LinkedList:
             return plain_list
         return self.to_plain_list(current.next, plain_list)
 
-        def flatten_reverse(self, max_depth=None):
+    def flatten_reverse(self, max_depth=None):
         """
         Returns a generator that yields every element from the list in reverse order,
         flattening nested containers up to max_depth levels.
