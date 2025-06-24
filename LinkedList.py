@@ -118,12 +118,13 @@ class LinkedList:
                 yield item
                 return
     
-            # Convert nested LinkedLists into plain lists BEFORE checking depth
+            # Unwrap LinkedList to list and go deeper
             if isinstance(item, LinkedList):
                 item = item.to_plain_list()
+                current_depth += 1
     
-            # If at max depth, stop flattening
-            if max_depth is not None and current_depth >= max_depth:
+            # If at or over max_depth, stop flattening further
+            if max_depth is not None and current_depth > max_depth:
                 yield item
                 return
     
@@ -134,7 +135,7 @@ class LinkedList:
                 return
     
             for sub_item in reversed(container_items):
-                yield from _flatten_item(sub_item, current_depth + 1)
+                yield from _flatten_item(sub_item, current_depth)
     
         def _collect_all_items():
             current = self._head
