@@ -114,40 +114,33 @@ class LinkedList:
         Strings and bytes are not split apart.
         """
         def _flatten_item(item, current_depth=0):
-            # Don't flatten strings or bytes
             if isinstance(item, (str, bytes)):
                 yield item
                 return
     
-            # Expand LinkedList manually
+            # Convert nested LinkedLists into plain lists BEFORE checking depth
             if isinstance(item, LinkedList):
                 item = item.to_plain_list()
     
-            # Try to iterate over the item
-            try:
-                container_items = list(item)
-            except TypeError:
-                # Not iterable — yield as-is
-                yield item
-                return
-    
-            # Check depth limit
+            # If at max depth, stop flattening
             if max_depth is not None and current_depth >= max_depth:
                 yield item
                 return
     
-            # Flatten each sub-item in reverse order
+            try:
+                container_items = list(item)
+            except TypeError:
+                yield item
+                return
+    
             for sub_item in reversed(container_items):
                 yield from _flatten_item(sub_item, current_depth + 1)
     
         def _collect_all_items():
-            items = []
             current = self._head
             while current:
-                items.append(current.data)
+                yield current.data
                 current = current.next
-            return items
     
-        for item in reversed(_collect_all_items()):
+        for item in reversed(list(_collect_all_items())):
             yield from _flatten_item(item)
-    
