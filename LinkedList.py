@@ -113,35 +113,41 @@ class LinkedList:
         flattening nested containers up to max_depth levels.
         Strings and bytes are not split apart.
         """
-        def _flatten_item(item, current_depth=0):
+        def _flatten(item, current_depth=0):
+            # Don't iterate strings or bytes
             if isinstance(item, (str, bytes)):
                 yield item
                 return
     
-            # Unwrap LinkedList to list and go deeper
+            # If item is a LinkedList, convert to list for easier handling
             if isinstance(item, LinkedList):
-                item = item.to_plain_list()
+                # Increase depth when going inside LinkedList
                 current_depth += 1
+                item = item.to_plain_list()
     
-            # If at or over max_depth, stop flattening further
-            if max_depth is not None and current_depth > max_depth:
+            # If max_depth set and current depth reached or exceeded, yield item as is
+            if max_depth is not None and current_depth >= max_depth:
                 yield item
                 return
     
+            # Try to iterate item (list, tuple, etc.)
             try:
-                container_items = list(item)
+                iterator = reversed(list(item))
             except TypeError:
+                # Not iterable, yield item itself
                 yield item
                 return
     
-            for sub_item in reversed(container_items):
-                yield from _flatten_item(sub_item, current_depth)
+            # Recurse for each element in reversed container
+            for elem in iterator:
+                yield from _flatten(elem, current_depth)
     
-        def _collect_all_items():
-            current = self._head
-            while current:
-                yield current.data
-                current = current.next
+        # Collect all items from linked list in order, then iterate reversed
+        current = self._head
+        all_items = []
+        while current:
+            all_items.append(current.data)
+            current = current.next
     
-        for item in reversed(list(_collect_all_items())):
-            yield from _flatten_item(item)
+        for top_item in reversed(all_items):
+            yield from _flatten(top_item)
