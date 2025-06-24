@@ -1,5 +1,6 @@
 import unittest
 from LinkedList import LinkedList
+from LinkedList import Node 
 
 class UnitTests(unittest.TestCase):
     def test_insert_beginning(self):
@@ -78,7 +79,24 @@ class UnitTests(unittest.TestCase):
         ll.add({"bad": "structure"})  # not a LinkedList
         ll.add(2)
         self.assertEqual(ll.flatten_reverse(), [2, {"bad": "structure"}, 1])
+    def test_flatten_reverse_cyclic_nested(self):
+        a = LinkedList()
+        b = LinkedList()
+        a.add(1)
+        a.add(b)
+        b.add(2)
+        b.add(a)  # Creates a cycle
 
+        with self.assertRaises(RecursionError):
+            a.flatten_reverse()
+    def test_flatten_reverse_with_embedded_list(self):
+        ll = LinkedList()
+        ll.add(1)
+        ll.add([2, 3])  # This is a Python list, not a LinkedList
+        ll.add(4)
+
+        # should ignore the internal struct [2, 3]
+        self.assertEqual(ll.flatten_reverse(), [4, [2, 3], 1])
 
 if __name__ == "__main__":
     unittest.main()
