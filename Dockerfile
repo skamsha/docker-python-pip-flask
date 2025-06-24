@@ -3,4 +3,5 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["sh", "run_tests.sh"]
+RUN chmod +x run_tests.sh
+CMD ["./run_tests.sh"]
