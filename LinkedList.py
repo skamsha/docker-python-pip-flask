@@ -96,7 +96,7 @@ class LinkedList:
         current.next = previous
         self.reverse(next_node, current)
 
-        def to_plain_list(self, current = None, plain_list = None):
+    def to_plain_list(self, current = None, plain_list = None):
         """
         Takes the elements of the LinkedList and returns them in the form of
         a regular Python list
