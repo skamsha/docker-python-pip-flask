@@ -113,7 +113,7 @@ class LinkedList:
         flattening nested containers (including LinkedLists) up to max_depth
         """
         def _flatten(item, depth):
-            if isinstance(item, (str, bytes)) or depth > max_depth:
+            if isinstance(item, (str, bytes)) or depth >= max_depth:
                 yield item
             elif isinstance(item, LinkedList):
                 yield from _flatten_list(item._head, depth + 1)
