@@ -2,14 +2,28 @@ import unittest
 from LinkedList import LinkedList, Node
 
 class UnitTests(unittest.TestCase):
-    def test_insert_beginning(self):
+    def test_add_and_to_plain_list(self):
         ll = LinkedList()
-        ll.add(10)
-        ll.add(20)
-        ll.insert(5, 0)
-        self.assertEqual(ll.to_plain_list(), [5, 10, 20])
+        ll.add(1)
+        ll.add(2)
+        ll.add(3)
+        self.assertEqual(ll.to_plain_list(), [1, 2, 3])
 
-    def test_reverse_basic(self):
+    def test_insert(self):
+        ll = LinkedList()
+        ll.add(1)
+        ll.add(3)
+        ll.insert(2, 1)
+        self.assertEqual(ll.to_plain_list(), [1, 2, 3])
+
+    def test_contains(self):
+        ll = LinkedList()
+        ll.add("a")
+        ll.add("b")
+        self.assertTrue(ll.contains("a"))
+        self.assertFalse(ll.contains("z"))
+
+    def test_reverse(self):
         ll = LinkedList()
         ll.add(1)
         ll.add(2)
@@ -17,79 +31,92 @@ class UnitTests(unittest.TestCase):
         ll.reverse()
         self.assertEqual(ll.to_plain_list(), [3, 2, 1])
 
-    def test_contains_true_and_false(self):
+    def test_flatten_reverse_flat_list(self):
         ll = LinkedList()
-        ll.add("10")
-        ll.add("12")
-        self.assertTrue(ll.contains("10"))
-        self.assertFalse(ll.contains("21"))
+        ll.add("a")
+        ll.add("b")
+        ll.add("c")
+        self.assertEqual(list(ll.flatten_reverse()), ["c", "b", "a"])
 
-    # Flatten_reverse tests based on prompt:
-    def test_flatten_reverse_simple_flat(self):
-        ll = LinkedList()
-        ll.add(1)
-        ll.add(2)
-        ll.add(3)
-        self.assertEqual(ll.flatten_reverse(), [3, 2, 1])
-
-    def test_flatten_reverse_nested_lists(self):
+    def test_flatten_reverse_with_nested_linkedlists(self):
         inner = LinkedList()
-        inner.add("a")
-        inner.add("b")
+        inner.add(2)
+        inner.add(3)
         outer = LinkedList()
         outer.add(1)
         outer.add(inner)
-        outer.add(2)
-        # reversed flattened: [2, 'b', 'a', 1]
-        self.assertEqual(outer.flatten_reverse(), [2, "b", "a", 1])
+        outer.add(4)
+        self.assertEqual(list(outer.flatten_reverse()), [4, 3, 2, 1])
 
-    def test_flatten_reverse_with_max_depth(self):
-        # Assuming flatten_reverse accepts max_depth arg and obeys it
-        inner = LinkedList()
-        inner.add("x")
-        inner.add("y")
-        outer = LinkedList()
-        outer.add(1)
-        outer.add(inner)
-        outer.add(2)
-        # flatten with max_depth=1 means do not recurse into inner list
-        self.assertEqual(outer.flatten_reverse(max_depth=1), [2, inner, 1])
-
-    def test_flatten_reverse_handles_cycles(self):
-        a = LinkedList()
-        b = LinkedList()
-        a.add(1)
-        a.add(b)
-        b.add(2)
-        b.add(a)  # cycle
-
-        # Should not raise infinite recursion or crash
-        result = a.flatten_reverse()
-        # Result includes 2 and 1; no infinite loop
-        self.assertIn(1, result)
-        self.assertIn(2, result)
-        self.assertTrue(len(result) >= 2)  # At least these two flattened values
-
-    def test_flatten_reverse_empty(self):
-        ll = LinkedList()
-        self.assertEqual(ll.flatten_reverse(), [])
-
-    def test_flatten_reverse_with_non_linkedlist_data(self):
-        ll = LinkedList()
-        ll.add([1, 2])  # regular python list - treated as data, not flattened
-        ll.add(3)
-        self.assertEqual(ll.flatten_reverse(), [3, [1, 2]])
-
-    def test_flatten_reverse_does_not_modify_original(self):
+    def test_flatten_reverse_with_mixed_iterables(self):
         ll = LinkedList()
         ll.add(1)
+        ll.add([2, 3])
+        ll.add((4, 5))
+        ll.add(6)
+        self.assertEqual(list(ll.flatten_reverse()), [6, 5, 4, 3, 2, 1])
+
+    def test_flatten_reverse_ignores_strings(self):
+        ll = LinkedList()
+        ll.add("hello")
+        ll.add(["world", "!"])
+        self.assertEqual(list(ll.flatten_reverse()), ["!", "world", "hello"])
+
+    def test_flatten_reverse_with_none_and_empty(self):
+        ll = LinkedList()
+        ll.add(None)
+        ll.add([])
+        ll.add(5)
+        self.assertEqual(list(ll.flatten_reverse()), [5, None])
+
+    def test_flatten_reverse_respects_max_depth(self):
+        ll = LinkedList()
         nested = LinkedList()
-        nested.add(2)
+        nested.add([1, 2])
         ll.add(nested)
-        before = ll.to_plain_list()
-        _ = ll.flatten_reverse()
-        after = ll.to_plain_list()
-        self.assertEqual(before, after)
+        ll.add(3)
+        self.assertEqual(list(ll.flatten_reverse(max_depth=1)), [3, [1, 2]])
+
+    def test_flatten_reverse_max_depth_2(self):
+        ll = LinkedList()
+        level2 = LinkedList()
+        level2.add([1, 2])
+        level1 = LinkedList()
+        level1.add(level2)
+        ll.add(level1)
+        ll.add(3)
+        self.assertEqual(list(ll.flatten_reverse(max_depth=2)), [3, 2, 1])
+
+    def test_flatten_reverse_shared_substructure(self):
+        shared = LinkedList()
+        shared.add("z")
+        a = LinkedList()
+        a.add("x")
+        a.add(shared)
+        b = LinkedList()
+        b.add("y")
+        b.add(shared)
+        top = LinkedList()
+        top.add(a)
+        top.add(b)
+        self.assertEqual(list(top.flatten_reverse()), ["z", "y", "z", "x"])
+
+    def test_flatten_reverse_generator_type(self):
+        ll = LinkedList()
+        ll.add(1)
+        out = ll.flatten_reverse()
+        self.assertTrue(hasattr(out, '__iter__') and not isinstance(out, list))
+
+    def test_flatten_reverse_does_not_mutate(self):
+        ll = LinkedList()
+        ll.add(1)
+        ll.add([2, 3])
+        _ = list(ll.flatten_reverse())
+        self.assertEqual(ll.to_plain_list(), [1, [2, 3]])
+
+    def test_flatten_reverse_empty_list(self):
+        ll = LinkedList()
+        self.assertEqual(list(ll.flatten_reverse()), [])
 
 if __name__ == "__main__":
     unittest.main()
