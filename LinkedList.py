@@ -109,44 +109,39 @@ class LinkedList:
 
     def flatten_reverse(self, max_depth=None):
         def _flatten(item, current_depth=0):
-            # If max_depth reached or exceeded, yield container as-is (but convert LinkedList to plain list once)
+            # At max depth: yield contents without further flattening
             if max_depth is not None and current_depth >= max_depth:
                 if isinstance(item, LinkedList):
-                    # yield plain list, not the LinkedList object
-                    yield item.to_plain_list()
+                    # Yield each element in plain list, avoid double wrapping
+                    for elem in item.to_plain_list():
+                        yield elem
                 else:
                     yield item
                 return
             
-            # Handle LinkedList by converting to plain list and recurse deeper
             if isinstance(item, LinkedList):
                 yield from _flatten(item.to_plain_list(), current_depth + 1)
                 return
             
-            # Strings and bytes are yielded as is
             if isinstance(item, (str, bytes)):
                 yield item
                 return
             
-            # Try to treat item as iterable
             try:
                 iter_list = list(item)
             except TypeError:
-                # Not iterable, yield item directly
                 yield item
                 return
             
-            # For iterables, flatten elements in reverse order with incremented depth
             for elem in reversed(iter_list):
                 yield from _flatten(elem, current_depth + 1)
     
-        # Gather data from nodes in normal order
+        # Collect data from linked list nodes
         current = self._head
         data = []
         while current:
             data.append(current.data)
             current = current.next
     
-        # Yield from reversed data with flattening
         for elem in reversed(data):
             yield from _flatten(elem)
