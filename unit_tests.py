@@ -1,73 +1,61 @@
 import unittest
-from app import app, db, Todo 
+from LinkedList import LinkedList
 
-class TodoTestCase(unittest.TestCase):
+class UnitTests(unittest.TestCase):
 
-    def setUp(self):
-        # Configure the app for testing
-        app.config['TESTING'] = True
-        # Use an in-memory SQLite database for tests
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        # Create the test client
-        self.app = app.test_client()
-        # Push the application context and create all tables
-        self.ctx = app.app_context()
-        self.ctx.push()
-        db.create_all()
+    def test_insert_beginning(self):
+        ll = LinkedList()
+        ll.add(13)
+        ll.add(81)
+        ll.insert(2, 0)
+        self.assertEqual(ll.to_plain_list(), [2, 13, 81])
 
-    def tearDown(self):
-        # Cleanup the database and remove the app context
-        db.session.remove()
-        db.drop_all()
-        self.ctx.pop()
+    def test_insert_middle(self):
+        ll = LinkedList()
+        ll.add(13)
+        ll.add(81)
+        ll.insert(2, 1)
+        self.assertEqual(ll.to_plain_list(), [13, 2, 81])
 
-    def test_home(self):
-        # Test that the home route ("/") returns a 200 OK status code.
-        response = self.app.get("/")
-        self.assertEqual(response.status_code, 200)
-        # Optionally, check for expected content in the rendered template.
-        self.assertIn(b"Todo", response.data)
+    def test_insert_end(self):
+        ll = LinkedList()
+        ll.add(13)
+        ll.add(81)
+        ll.insert(2, 2)
+        self.assertEqual(ll.to_plain_list(), [13, 81, 2])
 
-    def test_add_todo(self):
-        # Test posting a new todo item using the "/add" route.
-        response = self.app.post("/add", data={"title": "Test Todo"}, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        # Verify that the new todo has been added to the database.
-        todo = Todo.query.filter_by(title="Test Todo").first()
-        self.assertIsNotNone(todo)
-        self.assertFalse(todo.complete)
+    def test_insert_beyond_end(self):
+        ll = LinkedList()
+        ll.add(13)
+        ll.add(81)
+        ll.insert(2, 5)  # Should still append
+        self.assertEqual(ll.to_plain_list(), [13, 81, 2])
 
-    def test_update_todo(self):
-        # Manually add a todo item to update.
-        todo = Todo(title="Update Test", complete=False)
-        db.session.add(todo)
-        db.session.commit()
-        todo_id = todo.id
+    def test_insert_into_empty(self):
+        ll = LinkedList()
+        ll.insert(3, 3)  # Should just insert as the first node
+        self.assertEqual(ll.to_plain_list(), [3])
 
-        # Toggle its 'complete' value by accessing the update route.
-        response = self.app.get(f"/update/{todo_id}", follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        # Use Session.get() instead of Query.get()
-        updated_todo = db.session.get(Todo, todo_id)
-        self.assertTrue(updated_todo.complete)
+    def test_reverse_multiple(self):
+        ll = LinkedList()
+        ll.add(1)
+        ll.add(2)
+        ll.add(3)
+        ll.reverse()
+        self.assertEqual(ll.to_plain_list(), [3, 2, 1])
 
-    def test_delete_todo(self):
-        # Manually add a todo item to delete.
-        todo = Todo(title="Delete Test", complete=False)
-        db.session.add(todo)
-        db.session.commit()
-        todo_id = todo.id
+    def test_reverse_single(self):
+        ll = LinkedList()
+        ll.add(17)
+        ll.reverse()
+        self.assertEqual(ll.to_plain_list(), [17])
 
-        # Delete the todo using the delete route.
-        response = self.app.get(f"/delete/{todo_id}", follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        # Use Session.get() instead of Query.get()
-        deleted_todo = db.session.get(Todo, todo_id)
-        self.assertIsNone(deleted_todo)
-
-    # def test_failure(self):
-    #     # Simulate a failure case
-    #     self.assertFalse(True, "This test should fail.")
+    def test_contains_true_false(self):
+        ll = LinkedList()
+        ll.add("head")
+        ll.add("node")
+        self.assertTrue(ll.contains("head"))
+        self.assertFalse(ll.contains("tails"))
 
 if __name__ == "__main__":
     unittest.main()
