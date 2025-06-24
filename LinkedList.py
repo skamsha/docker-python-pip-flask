@@ -1,4 +1,3 @@
-import collections.abc # Added for safe iterable checks in flatten_reverse
 class Node:
     """
     Represents a node within a LinkedList
@@ -113,38 +112,3 @@ class LinkedList:
             return plain_list
         else:
             return self.to_plain_list(current.next, plain_list)
-    
-    # New method added below for flatten_reverse functionality
-    def flatten_reverse(self, max_depth=float('inf'), current_depth=0):
-        """
-        Returns a generator that yields flattened elements from the linked list
-        in reverse order, handling nested containers up to max_depth.
-        - Yields lazily without modifying the original list.
-        - Flattens iterables (including nested LinkedList) recursively.
-        - If max_depth is reached, yields the container as-is.
-        """
-        def flatten_item(item, depth):
-            """Helper to flatten a single item recursively."""
-            if depth > max_depth:
-                yield item
-            elif isinstance(item, LinkedList):
-                # Recurse into nested LinkedList, maintaining reversal and depth
-                yield from item.flatten_reverse(max_depth, depth)
-            elif isinstance(item, collections.abc.Iterable) and not isinstance(item, str):
-                # Flatten other iterables in their natural order
-                for subitem in item:
-                    yield from flatten_item(subitem, depth + 1)
-            else:
-                yield item
-        
-        def helper(current):
-            """Recursive helper to traverse the list in reverse."""
-            if current is None:
-                return
-            # Recurse to the next node first (for reversal)
-            yield from helper(current.next)
-            # Then yield flattened items from current node's data
-            yield from flatten_item(current.data, current_depth)
-        
-        # Start traversal from the head
-        return helper(self._head)
