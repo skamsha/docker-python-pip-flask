@@ -108,41 +108,34 @@ class LinkedList:
         return self.to_plain_list(current.next, plain_list)
 
     def flatten_reverse(self, max_depth=None):
-        """
-        Returns a generator that yields every element from the list in reverse order,
-        flattening nested containers up to max_depth levels.
-        Strings and bytes are not split apart.
-        """
         def _flatten(item, current_depth=0):
-            # Don't iterate strings or bytes
             if isinstance(item, (str, bytes)):
                 yield item
                 return
     
-            # If item is a LinkedList, convert to list for easier handling
             if isinstance(item, LinkedList):
-                # Increase depth when going inside LinkedList
                 current_depth += 1
                 item = item.to_plain_list()
     
-            # If max_depth set and current depth reached or exceeded, yield item as is
             if max_depth is not None and current_depth >= max_depth:
-                yield item
+                # flatten one level before yielding
+                # if item is iterable but not string, yield its elements directly
+                if isinstance(item, (list, tuple)):
+                    for elem in item:
+                        yield elem
+                else:
+                    yield item
                 return
     
-            # Try to iterate item (list, tuple, etc.)
             try:
                 iterator = reversed(list(item))
             except TypeError:
-                # Not iterable, yield item itself
                 yield item
                 return
     
-            # Recurse for each element in reversed container
             for elem in iterator:
                 yield from _flatten(elem, current_depth)
     
-        # Collect all items from linked list in order, then iterate reversed
         current = self._head
         all_items = []
         while current:
